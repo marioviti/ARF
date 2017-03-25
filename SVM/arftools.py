@@ -3,6 +3,35 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 
+def fig_plot_data(fig,data,labels=None,alpha=1.0):
+    """
+    Affiche des donnees 2D
+    :param data: matrice des donnees 2d
+    :param labels: vecteur des labels (discrets)
+    :return:
+    """
+    cols,marks = ["orange", "blue","green", "red", "black", "cyan"],["+","+","*","o","x","^"]
+    if labels is None:
+        fig.scatter(data[:,0],data[:,1],marker="x",alpha=alpha)
+        return
+    for i,l in enumerate(sorted(list(set(labels.flatten())))):
+        fig.scatter(data[labels==l,0],data[labels==l,1],c=cols[i],marker=marks[i],alpha=alpha)
+        
+def fig_plot_frontiere(fig,X,decision_function):
+    x_max, x_min, y_max, y_min = np.max(X[:,0]),  np.min(X[:,0]), np.max(X[:,1]), np.min(X[:,1])
+
+    XX, YY = np.mgrid[x_min:x_max:200j, y_min:y_max:200j]
+    Z = decision_function(np.c_[XX.ravel(), YY.ravel()])
+
+    # Put the result into a color plot
+    Z = Z.reshape(XX.shape)
+    fig.contour(XX, YY, Z, colors=['k', 'k', 'k'], linestyles=['--', '-', '--'],
+                levels=[-1, 0, 1])
+    fig.contourf(XX,YY,Z,colors=['yellow','red','blue','darkblue'],levels=[-1000,-1.,0,1.,1000],alpha=0.4)
+    fig.xlim(x_min, x_max)
+    fig.ylim(y_min, y_max)
+    
+
 def plot_data(data,labels=None):
     """
     Affiche des donnees 2D
@@ -10,7 +39,7 @@ def plot_data(data,labels=None):
     :param labels: vecteur des labels (discrets)
     :return:
     """
-    cols,marks = ["red", "blue","green", "orange", "black", "cyan"],[".","+","*","o","x","^"]
+    cols,marks = ["red", "blue","green", "orange", "black", "cyan"],["+","+","*","o","x","^"]
     if labels is None:
         plt.scatter(data[:,0],data[:,1],marker="x")
         return
