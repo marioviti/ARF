@@ -41,6 +41,7 @@ def compute_ROC(X,Y,clf):
     Compute ROC of a trained classifier
     """
     y_score = clf.decision_function(X)
+    y_score = label_binarize(y_score, classes=[-1, 1])
     fpr,tpr,_ = roc_curve(Y, y_score)
     roc_auc = auc(fpr,tpr)
     return fpr,tpr,roc_auc
@@ -50,6 +51,7 @@ def usps_1vsMulti_class_train_and_test(trainx,trainy,testx,testy,clf,classes = 1
     """
     Multiclass classification using 1 vs multi
     """
+    print 'trainig'
     train_scores = np.zeros(classes)
     test_scores = np.zeros(classes)
     roc_curves = {}
@@ -67,8 +69,8 @@ def usps_1vsMulti_class_train_and_test(trainx,trainy,testx,testy,clf,classes = 1
                 tch1x,tch1y = char(j,testx,testy)
                 test_datax = np.vstack((test_datax,tch1x))
                 test_datay = np.hstack((np.zeros(tch1y.shape)-1,test_datay))
-        train_datay = label_binarize(train_datay, classes=[0, 1])
-        test_datay = label_binarize(test_datay, classes=[0, 1])
+        train_datay = label_binarize(train_datay, classes=[-1, 1])
+        test_datay = label_binarize(test_datay, classes=[-1, 1])
         clf.fit(train_datax,train_datay)
         train_scores[i] = clf.score(train_datax,train_datay)
         test_scores[i] = clf.score(test_datax,test_datay)
