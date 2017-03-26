@@ -41,7 +41,7 @@ def compute_ROC(X,Y,clf):
     Compute ROC of a trained classifier
     """
     y_score = clf.decision_function(X)
-    y_score = label_binarize(y_score, classes=[-1, 1])
+    y_score = label_binarize(y_score,classes=[0,1],  neg_label=-1, pos_label=1 )
     fpr,tpr,_ = roc_curve(Y, y_score)
     roc_auc = auc(fpr,tpr)
     return fpr,tpr,roc_auc
@@ -51,32 +51,46 @@ def usps_1vsMulti_class_train_and_test(trainx,trainy,testx,testy,clf,classes = 1
     """
     Multiclass classification using 1 vs multi
     """
-    print 'trainig'
+    print 'trainig, using 1 vs multi'
     train_scores = np.zeros(classes)
     test_scores = np.zeros(classes)
     roc_curves = {}
+    w_histo = []
     for i in range(classes):
+        # extract positives aka 1
         train_datax,train_datay = char(i,trainx,trainy)
         test_datax,test_datay = char(i,testx,testy)
+        # extract positives test labels
         test_datay = np.ones(test_datay.shape)
-        train_datay = np.ones(train_datay.shape)
+        # extract positives train labels
+        train_datay = np.ones(train_datay.shape) # create ones
+        
         for j in range(classes):            
             if not i==j:
-                ch1x,ch1y = char(j,trainx,trainy) 
-                train_datax = np.vstack((train_datax,ch1x))
-                train_datay = np.hstack((np.zeros(ch1y.shape)-1,train_datay))
+                # extract train negatives examples and labels aka -1 aka "multi"
+                train_ch1x,train_ch1y = char(j,trainx,trainy) 
+                # stacking vertically on top negatives examples to the train and test set
+                train_datax = np.vstack((train_datax,train_ch1x))
+                # stacking horizontally to the left  negatives labels to the train and test set
+                train_datay = np.hstack((train_datay,np.zeros(train_ch1y.shape)-1)) # add -1
                 
-                tch1x,tch1y = char(j,testx,testy)
-                test_datax = np.vstack((test_datax,tch1x))
-                test_datay = np.hstack((np.zeros(tch1y.shape)-1,test_datay))
-        train_datay = label_binarize(train_datay, classes=[-1, 1])
-        test_datay = label_binarize(test_datay, classes=[-1, 1])
-        clf.fit(train_datax,train_datay)
-        train_scores[i] = clf.score(train_datax,train_datay)
-        test_scores[i] = clf.score(test_datax,test_datay)
-        roc_curves[i] = compute_ROC(test_datax,test_datay,clf)
+                # extract train negatives examples and labels aka -1 aka "multi"
+                test_ch1x,test_ch1y = char(j,testx,testy) 
+                test_datax = np.vstack((test_datax,test_ch1x))
+                test_datay = np.hstack((test_datay,np.zeros(test_ch1y.shape)-1)) # add -1
         
-    return train_scores, test_scores, roc_curves
+        # training the classifier
+        clf.fit(train_datax,train_datay)
+        # getting the score on train data
+        train_scores[i] = clf.score(train_datax,train_datay)
+        # getting the score on test data
+        test_scores[i] = clf.score(test_datax,test_datay)
+        # roc curve data
+        roc_curves[i] = compute_ROC(test_datax,test_datay,clf)
+        # save the weight
+        w_histo += [clf.w.copy()]
+        
+    return train_scores, test_scores, roc_curves, w_histo
 
 def usps_1vs1_class_trant_and_test(trainx,trainy,testx,testy,clf,classes = 10):
     """
