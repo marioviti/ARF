@@ -10,7 +10,7 @@ def load_usps(fn):
     tmp=np.array(data)
     return tmp[:,1:],tmp[:,0].astype(int)
 
-def show_usps(data):
+def show_usps(data,size=6):
     """
     plot figure of digit
     """
