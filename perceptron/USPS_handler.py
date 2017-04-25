@@ -86,6 +86,8 @@ def usps_1vsMulti_class_train_and_test(trainx,trainy,testx,testy,clf,classes = 1
         # getting the score on test data
         test_scores[i] = clf.score(test_datax,test_datay)
         # roc curve data
+        train_datay = label_binarize(train_datay, classes=[-1, 1])
+        test_datay = label_binarize(test_datay, classes=[-1, 1])
         roc_curves[i] = compute_ROC(test_datax,test_datay,clf)
         # save the weight
         w_histo += [clf.w.copy()]
